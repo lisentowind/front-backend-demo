@@ -86,21 +86,47 @@ func (h *HelloController) GetUserById(c *gin.Context) {
 }
 
 func (h *HelloController) GetAllUsers(c *gin.Context) {
-	var users []model.User
-
-	if err := config.DB.Find(&users).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, model.Response{
-			Code: http.StatusOK,
-			Msg:  "获取用户列表失败",
-			Data: nil,
-		})
+	var pageQuery utils.PageQuery
+	if err := c.ShouldBindQuery(&pageQuery); err != nil {
+		c.JSON(http.StatusBadRequest, model.Response{
+			Code: http.StatusInternalServerError,
+			Msg:  "分页参数错误",
+			Data: nil})
 		return
 	}
 
-	c.JSON(http.StatusOK, model.Response{
-		Code: http.StatusOK,
-		Msg:  "获取用户列表成功",
-		Data: users,
+	var users []model.User
+	var total int64
+
+	db := config.DB.Model(&model.User{})
+
+	if err := db.Count(&total).Error; err != nil {
+		c.JSON(http.StatusOK, model.Response{
+			Code: http.StatusInternalServerError,
+			Msg:  "获取用户总数失败",
+			Data: nil})
+		return
+	}
+
+	offset := (pageQuery.Page - 1) * pageQuery.Size
+
+	if err := db.
+		Order("id DESC").
+		Offset(offset).
+		Limit(pageQuery.Size).
+		Find(&users).Error; err != nil {
+		c.JSON(http.StatusOK, model.Response{
+			Code: http.StatusInternalServerError,
+			Msg:  "获取用户总数失败",
+			Data: nil})
+		return
+	}
+
+	c.JSON(http.StatusOK, model.TableData{
+		List:  users,
+		Page:  pageQuery.Page,
+		Size:  pageQuery.Size,
+		Total: int(total),
 	})
 }
 
