@@ -4,6 +4,17 @@ interface DataResponse<T = unknown> {
   msg: string
 }
 
+interface TableResponse<T = unknown> {
+  code: number
+  data: {
+    total: number
+    list: T[]
+    page: number
+    size: number
+  }
+  msg: string
+}
+
 interface HttpResponse<T = DataResponse> {
   status: number
   msg: string

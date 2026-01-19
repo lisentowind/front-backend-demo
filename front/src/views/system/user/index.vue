@@ -1,105 +1,50 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import type { ColumnsType } from 'ant-design-vue/es/table'
+import { Modal } from 'ant-design-vue'
+import { onMounted, ref } from 'vue'
+import { useRequest } from 'vue-request'
 import { z } from 'zod'
+import { addUser, deleteUsers, getAllUsers } from '@/apis/modules/user'
 import { useMessage, useZodForm } from '@/hooks'
-
-interface User {
-  id: string
-  username: string
-  nickname: string
-  email: string
-  phone?: string
-  roles: string[]
-  status: 'active' | 'disabled'
-  createdAt: string
-}
+import { transformItemTyped } from '@/utils/modules/table-data-trans-line'
 
 // Zod 表单验证Schema
 const userFormSchema = z.object({
-  username: z
-    .string()
-    .min(3, '用户名至少3个字符')
-    .max(20, '用户名最多20个字符')
-    .regex(/^\w+$/, '用户名只能包含字母、数字和下划线'),
-  nickname: z.string().min(2, '昵称至少2个字符').max(20, '昵称最多20个字符'),
-  email: z.email('请输入有效的邮箱地址'),
-  phone: z
-    .string()
-    .regex(/^1[3-9]\d{9}$/, '请输入有效的手机号码')
+  name: z.string().min(1, '用户名不能为空').max(100, '用户名最多100个字符'),
+  age: z
+    .number()
+    .int('年龄必须是整数')
+    .min(1, '年龄必须大于0')
+    .max(150, '年龄必须小于150')
     .optional()
-    .or(z.literal('')),
-  password: z
-    .string()
-    .min(6, '密码至少6个字符')
-    .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, '密码必须包含大小写字母和数字')
-    .optional()
-    .or(z.literal('')),
-  roles: z.array(z.string()).min(1, '至少选择一个角色'),
-  status: z.enum(['active', 'disabled']),
+    .or(z.literal(undefined)),
+  email: z.string().email('请输入有效的邮箱地址').optional().or(z.literal('')),
 })
 
-const columns = [
-  { title: 'ID', dataIndex: 'id', key: 'id', width: 80 },
-  { title: '用户名', dataIndex: 'username', key: 'username' },
-  { title: '昵称', dataIndex: 'nickname', key: 'nickname' },
+const columns: ColumnsType = [
+  { title: 'ID', dataIndex: 'id', key: 'id' },
+  { title: '用户名', dataIndex: 'name', key: 'name' },
+  { title: '年龄', dataIndex: 'age', key: 'age' },
   { title: '邮箱', dataIndex: 'email', key: 'email' },
-  { title: '角色', dataIndex: 'roles', key: 'roles' },
-  { title: '状态', dataIndex: 'status', key: 'status' },
-  { title: '创建时间', dataIndex: 'createdAt', key: 'createdAt', width: 150 },
-  { title: '操作', key: 'action', width: 200 },
+  { title: '创建时间', dataIndex: 'createTime', key: 'createTime' },
+  { title: '操作', key: 'action' },
 ]
 
-const dataSource = ref<User[]>([
-  {
-    id: '1',
-    username: 'admin',
-    nickname: '超级管理员',
-    email: 'admin@example.com',
-    phone: '13800138000',
-    roles: ['admin'],
-    status: 'active',
-    createdAt: '2024-01-01 10:00:00',
-  },
-  {
-    id: '2',
-    username: 'editor',
-    nickname: '编辑人员',
-    email: 'editor@example.com',
-    phone: '13800138001',
-    roles: ['editor'],
-    status: 'active',
-    createdAt: '2024-01-02 10:00:00',
-  },
-  {
-    id: '3',
-    username: 'guest',
-    nickname: '访客',
-    email: 'guest@example.com',
-    roles: ['guest'],
-    status: 'active',
-    createdAt: '2024-01-03 10:00:00',
-  },
-])
+const dataSource = ref<User[]>([])
+const pagination = ref({
+  current: 1,
+  pageSize: 10,
+  total: 0,
+  showSizeChanger: true,
+  showTotal: (total: number) => `共 ${total} 条`,
+})
 
-// 角色选项
-const roleOptions = [
-  { label: '超级管理员', value: 'admin' },
-  { label: '编辑人员', value: 'editor' },
-  { label: '访客', value: 'guest' },
-]
+const selectedRowKeys = ref<number[]>([])
 
-// 状态选项
-const statusOptions = [
-  { label: '正常', value: 'active' },
-  { label: '禁用', value: 'disabled' },
-]
+const { msgSuccess, msgError } = useMessage()
 
-const { msgSuccess, msgWarning, msgError } = useMessage()
-
-const loading = ref(false)
 const modalVisible = ref(false)
 const modalTitle = ref('')
-const editingId = ref<string>('')
 
 // 使用 useZodForm
 const {
@@ -110,38 +55,88 @@ const {
   getFieldError,
   hasFieldError,
   allRules,
-  setValues,
 } = useZodForm(userFormSchema, {
-  username: '',
-  nickname: '',
+  name: '',
+  age: undefined,
   email: '',
-  phone: '',
-  password: '',
-  roles: [],
-  status: 'active',
 })
+
+// 获取用户列表
+const { run: fetchUsers, loading } = useRequest(getAllUsers, {
+  manual: true,
+  onSuccess: (res) => {
+    if (res.data.code === 200) {
+      dataSource.value = res.data.data.list.map((item) => {
+        return transformItemTyped<User>(item, {
+          timeKeys: {
+            createTime: 'YYYY-MM-DD HH:mm:ss',
+          },
+        })
+      })
+      pagination.value.total = res.data.data.total
+      pagination.value.current = res.data.data.page
+      pagination.value.pageSize = res.data.data.size
+    }
+    else {
+      msgError({ content: res.data.msg || '获取用户列表失败' })
+    }
+  },
+  onError: (error) => {
+    msgError({ content: `获取用户列表失败: ${error.message}` })
+  },
+})
+
+// 添加用户
+const { run: submitAddUser, loading: addLoading } = useRequest(addUser, {
+  manual: true,
+  onSuccess: (res) => {
+    if (res.data.code === 200) {
+      msgSuccess({ content: '添加用户成功' })
+      modalVisible.value = false
+      // 刷新列表
+      fetchUsers({
+        pageNum: pagination.value.current,
+        pageSize: pagination.value.pageSize,
+      })
+    }
+    else {
+      msgError({ content: res.data.msg || '添加用户失败' })
+    }
+  },
+  onError: (error) => {
+    msgError({ content: `添加用户失败: ${error.message}` })
+  },
+})
+
+// 删除用户
+const { run: submitDeleteUsers, loading: deleteLoading } = useRequest(
+  deleteUsers,
+  {
+    manual: true,
+    onSuccess: (res) => {
+      if (res.data.code === 200) {
+        msgSuccess({ content: '删除成功' })
+        selectedRowKeys.value = []
+        // 刷新列表
+        fetchUsers({
+          pageNum: pagination.value.current,
+          pageSize: pagination.value.pageSize,
+        })
+      }
+      else {
+        msgError({ content: res.data.msg || '删除失败' })
+      }
+    },
+    onError: (error) => {
+      msgError({ content: `删除失败: ${error.message}` })
+    },
+  },
+)
 
 // 打开新增弹窗
 function handleAdd() {
   modalTitle.value = '新增用户'
-  editingId.value = ''
   reset()
-  modalVisible.value = true
-}
-
-// 打开编辑弹窗
-function handleEdit(record: User) {
-  modalTitle.value = '编辑用户'
-  editingId.value = record.id
-  setValues({
-    username: record.username,
-    nickname: record.nickname,
-    email: record.email,
-    phone: record.phone || '',
-    password: '',
-    roles: record.roles,
-    status: record.status,
-  })
   modalVisible.value = true
 }
 
@@ -154,65 +149,104 @@ function handleSubmit() {
     return
   }
 
-  // 模拟保存
-  if (editingId.value) {
-    // 编辑
-    const index = dataSource.value.findIndex(
-      item => item.id === editingId.value,
-    )
-    if (index !== -1) {
-      dataSource.value[index] = {
-        ...dataSource.value[index],
-        ...result.data,
-      }
-      msgSuccess({ content: '编辑成功' })
-    }
-  }
-  else {
-    // 新增
-    const newUser: User = {
-      id: String(Date.now()),
-      ...result.data,
-      phone: result.data.phone || undefined,
-      createdAt: new Date().toLocaleString('zh-CN'),
-    }
-    dataSource.value.push(newUser)
-    msgSuccess({ content: '新增成功' })
+  // 准备提交数据，过滤掉空值
+  const submitData: { name: string, age?: number, email?: string } = {
+    name: result.data.name,
   }
 
-  modalVisible.value = false
+  if (result.data.age !== undefined && result.data.age !== null) {
+    submitData.age = result.data.age
+  }
+
+  if (result.data.email && result.data.email.trim() !== '') {
+    submitData.email = result.data.email
+  }
+
+  submitAddUser(submitData)
 }
 
-// 删除用户
+// 单个删除
 function handleDelete(record: User) {
-  msgWarning({ content: `确定删除用户：${record.nickname}？` })
-  // 这里应该显示确认对话框，简化处理
-  const index = dataSource.value.findIndex(item => item.id === record.id)
-  if (index !== -1) {
-    dataSource.value.splice(index, 1)
-    msgSuccess({ content: '删除成功' })
-  }
+  Modal.confirm({
+    title: '确认删除',
+    content: `确定要删除用户 "${record.name}" 吗？`,
+    okText: '确定',
+    cancelText: '取消',
+    onOk() {
+      submitDeleteUsers([record.id])
+    },
+  })
 }
 
-function getRoleColor(role: string) {
-  const colorMap: Record<string, string> = {
-    admin: 'red',
-    editor: 'blue',
-    guest: 'green',
+// 批量删除
+function handleBatchDelete() {
+  if (selectedRowKeys.value.length === 0) {
+    msgError({ content: '请至少选择一条数据' })
+    return
   }
-  return colorMap[role] || 'default'
+
+  Modal.confirm({
+    title: '确认删除',
+    content: `确定要删除选中的 ${selectedRowKeys.value.length} 条数据吗？`,
+    okText: '确定',
+    cancelText: '取消',
+    onOk() {
+      submitDeleteUsers(selectedRowKeys.value)
+    },
+  })
 }
+
+// 选择改变
+function onSelectChange(keys: number[]) {
+  selectedRowKeys.value = keys
+}
+
+// 分页改变
+function handleTableChange(pag: any) {
+  pagination.value.current = pag.current
+  pagination.value.pageSize = pag.pageSize
+  fetchUsers({
+    pageNum: pag.current,
+    pageSize: pag.pageSize,
+  })
+}
+
+onMounted(() => {
+  fetchUsers({
+    pageNum: pagination.value.current,
+    pageSize: pagination.value.pageSize,
+  })
+})
 </script>
 
 <template>
   <div>
     <div class="mb-4 flex items-center justify-between">
-      <h2 class="text-xl text-gray-800 font-semibold">
-        用户管理
-      </h2>
+      <div class="flex gap-2 items-center">
+        <h2 class="text-xl text-gray-800 font-semibold">
+          用户管理
+        </h2>
+        <AButton
+          v-if="selectedRowKeys.length > 0"
+          danger
+          :loading="deleteLoading"
+          @click="handleBatchDelete"
+        >
+          <template #icon>
+            <CustomIcon
+              icon="material-symbols:delete-outline"
+              class="m-[0_5px_3px_0] inline-block"
+            />
+          </template>
+          批量删除 ({{ selectedRowKeys.length }})
+        </AButton>
+      </div>
       <AButton type="primary" @click="handleAdd">
         <template #icon>
-          <CustomIcon icon="material-symbols:add" class="color-white m-[0_5px_3px_0] inline-block" />
+          <CustomIcon
+            icon="material-symbols:add"
+            class="color-white m-[0_5px_3px_0] inline-block"
+          />
         </template>
         添加用户
       </AButton>
@@ -223,36 +257,26 @@ function getRoleColor(role: string) {
       :data-source="dataSource"
       :loading="loading"
       row-key="id"
-      :pagination="{ pageSize: 10 }"
-      :scroll="{ x: 1200 }"
+      :pagination="pagination"
+      :scroll="{ x: 1000 }"
+      :row-selection="{
+        selectedRowKeys,
+        onChange: (selectedRowKeys) =>
+          onSelectChange(selectedRowKeys.map(Number)),
+      }"
+      @change="handleTableChange"
     >
       <template #bodyCell="{ column, record }">
-        <template v-if="column.key === 'roles'">
-          <ATag
-            v-for="role in record.roles"
-            :key="role"
-            :color="getRoleColor(role)"
-          >
-            {{ role }}
-          </ATag>
+        <template v-if="column.key === 'age'">
+          {{ record.age || '-' }}
         </template>
 
-        <template v-else-if="column.key === 'status'">
-          <ABadge
-            :status="record.status === 'active' ? 'success' : 'error'"
-            :text="record.status === 'active' ? '正常' : '禁用'"
-          />
+        <template v-else-if="column.key === 'email'">
+          {{ record.email || '-' }}
         </template>
 
         <template v-else-if="column.key === 'action'">
           <ASpace>
-            <AButton
-              type="link"
-              size="small"
-              @click="handleEdit(record as any)"
-            >
-              编辑
-            </AButton>
             <AButton
               type="link"
               size="small"
@@ -271,6 +295,7 @@ function getRoleColor(role: string) {
       v-model:open="modalVisible"
       :title="modalTitle"
       width="600px"
+      :confirm-loading="addLoading"
       @ok="handleSubmit"
     >
       <AForm
@@ -282,28 +307,30 @@ function getRoleColor(role: string) {
       >
         <AFormItem
           label="用户名"
-          name="username"
-          :validate-status="hasFieldError('username') ? 'error' : ''"
-          :help="getFieldError('username')"
+          name="name"
+          :validate-status="hasFieldError('name') ? 'error' : ''"
+          :help="getFieldError('name')"
         >
           <AInput
-            v-model:value="formData.username"
-            placeholder="请输入用户名 (3-20个字符)"
-            :disabled="!!editingId"
-            @blur="() => validateField('username')"
+            v-model:value="formData.name"
+            placeholder="请输入用户名 (必填)"
+            @blur="() => validateField('name')"
           />
         </AFormItem>
 
         <AFormItem
-          label="昵称"
-          name="nickname"
-          :validate-status="hasFieldError('nickname') ? 'error' : ''"
-          :help="getFieldError('nickname')"
+          label="年龄"
+          name="age"
+          :validate-status="hasFieldError('age') ? 'error' : ''"
+          :help="getFieldError('age')"
         >
-          <AInput
-            v-model:value="formData.nickname"
-            placeholder="请输入昵称"
-            @blur="() => validateField('nickname')"
+          <AInputNumber
+            v-model:value="formData.age"
+            placeholder="请输入年龄 (选填)"
+            :min="1"
+            :max="150"
+            class="w-full"
+            @blur="() => validateField('age')"
           />
         </AFormItem>
 
@@ -315,63 +342,8 @@ function getRoleColor(role: string) {
         >
           <AInput
             v-model:value="formData.email"
-            placeholder="请输入邮箱"
+            placeholder="请输入邮箱 (选填)"
             @blur="() => validateField('email')"
-          />
-        </AFormItem>
-
-        <AFormItem
-          label="手机号"
-          name="phone"
-          :validate-status="hasFieldError('phone') ? 'error' : ''"
-          :help="getFieldError('phone')"
-        >
-          <AInput
-            v-model:value="formData.phone"
-            placeholder="请输入手机号 (选填)"
-            @blur="() => validateField('phone')"
-          />
-        </AFormItem>
-
-        <AFormItem
-          label="密码"
-          name="password"
-          :validate-status="hasFieldError('password') ? 'error' : ''"
-          :help="getFieldError('password')"
-        >
-          <AInputPassword
-            v-model:value="formData.password"
-            :placeholder="editingId ? '留空则不修改密码' : '请输入密码'"
-            @blur="() => validateField('password')"
-          />
-        </AFormItem>
-
-        <AFormItem
-          label="角色"
-          name="roles"
-          :validate-status="hasFieldError('roles') ? 'error' : ''"
-          :help="getFieldError('roles')"
-        >
-          <ASelect
-            v-model:value="formData.roles"
-            mode="multiple"
-            placeholder="请选择角色"
-            :options="roleOptions"
-            @blur="() => validateField('roles')"
-          />
-        </AFormItem>
-
-        <AFormItem
-          label="状态"
-          name="status"
-          :validate-status="hasFieldError('status') ? 'error' : ''"
-          :help="getFieldError('status')"
-        >
-          <ASelect
-            v-model:value="formData.status"
-            placeholder="请选择状态"
-            :options="statusOptions"
-            @blur="() => validateField('status')"
           />
         </AFormItem>
       </AForm>

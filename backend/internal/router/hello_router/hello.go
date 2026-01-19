@@ -15,5 +15,6 @@ func InitHelloRouter(defaultRouter *gin.Engine) {
 		helloRouter.GET("/user/all", helloController.GetAllUsers)
 		helloRouter.GET("/user", helloController.GetUserById)
 		helloRouter.POST("/user/add", helloController.AddUser)
+		helloRouter.DELETE("/user/delete", helloController.DeleteUsers)
 	}
 }

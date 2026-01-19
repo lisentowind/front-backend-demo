@@ -13,10 +13,14 @@ func main() {
 	// 初始化路由
 	r := router.InitRouter()
 
-	port := ":8080"
-	fmt.Printf("服务正在启动，监听端口 %s ...\n", port)
+	addr := "0.0.0.0:8080"
+	fmt.Printf("服务正在启动，监听地址 %s ...\n", addr)
+	fmt.Println("可以通过以下方式访问:")
+	fmt.Println("  - http://localhost:8080")
+	fmt.Println("  - http://127.0.0.1:8080")
+	fmt.Println("  - http://<本机IP>:8080")
 
-	if err := r.Run(port); err != nil {
+	if err := r.Run(addr); err != nil {
 		fmt.Printf("服务器启动失败: %v\n", err)
 	}
 }

@@ -85,6 +85,49 @@ func (h *HelloController) GetUserById(c *gin.Context) {
 	})
 }
 
+// 删除用户（支持单个和批量）
+func (h *HelloController) DeleteUsers(c *gin.Context) {
+	var req struct {
+		Ids []int `json:"ids" binding:"required,min=1"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusOK, model.Response{
+			Code: http.StatusBadRequest,
+			Msg:  "参数错误，请提供要删除的用户ID列表",
+			Data: nil,
+		})
+		return
+	}
+
+	// 执行批量删除
+	result := config.DB.Where("id IN ?", req.Ids).Delete(&model.User{})
+	if result.Error != nil {
+		c.JSON(http.StatusOK, model.Response{
+			Code: http.StatusInternalServerError,
+			Msg:  "删除失败: " + result.Error.Error(),
+			Data: nil,
+		})
+		return
+	}
+
+	// 检查是否有记录被删除
+	if result.RowsAffected == 0 {
+		c.JSON(http.StatusOK, model.Response{
+			Code: http.StatusNotFound,
+			Msg:  "未找到要删除的用户",
+			Data: nil,
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, model.Response{
+		Code: http.StatusOK,
+		Msg:  "删除成功",
+		Data: gin.H{"deletedCount": result.RowsAffected},
+	})
+}
+
 func (h *HelloController) GetAllUsers(c *gin.Context) {
 	var pageQuery utils.PageQuery
 	if err := c.ShouldBindQuery(&pageQuery); err != nil {
@@ -122,12 +165,17 @@ func (h *HelloController) GetAllUsers(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, model.TableData{
-		List:  users,
-		Page:  pageQuery.Page,
-		Size:  pageQuery.Size,
-		Total: int(total),
-	})
+	c.JSON(http.StatusOK,
+		model.Response{
+			Code: http.StatusOK,
+			Msg:  "获取用户总数成功",
+			Data: model.TableData{
+				List:  users,
+				Page:  pageQuery.Page,
+				Size:  pageQuery.Size,
+				Total: int(total),
+			}},
+	)
 }
 
 func (h *HelloController) HelloTable(c *gin.Context) {
