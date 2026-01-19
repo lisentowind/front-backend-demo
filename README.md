@@ -65,21 +65,80 @@ cd backend && go mod download
 
 ### 开发模式
 
-```bash
-# 同时启动前端和后端
-pnpm dev
+#### 方式一：自动平台检测（推荐）
 
-# 或分别启动
-pnpm front-dev   # 启动前端
-pnpm backend-dev # 启动后端
+```bash
+# 自动检测平台并启动后端
+pnpm backend-dev:setup
+
+# 或同时启动前端和后端
+pnpm dev
 ```
+
+#### 方式二：手动指定平台
+
+**macOS / Linux:**
+```bash
+pnpm backend-dev:mac    # 或 pnpm backend-dev:linux
+```
+
+**Windows:**
+```bash
+pnpm backend-dev:windows
+```
+
+#### 方式三：分别启动
+
+```bash
+# 启动前端
+pnpm front-dev
+
+# 启动后端（根据你的平台选择）
+pnpm backend-dev:mac    # macOS
+# 或
+pnpm backend-dev:windows # Windows
+```
+
+### 平台特定配置
+
+如果你的后端在 Mac 上无法启动，请运行以下命令进行平台检测和配置：
+
+```bash
+./setup-air.sh
+```
+
+这个脚本会：
+1. 检测你的操作系统平台
+2. 自动选择合适的 Air 配置文件
+3. 设置正确的二进制文件路径
 
 ### 构建
 
 ```bash
-# 执行构建脚本
+# 执行构建脚本（仅适用于 Unix-like 系统）
 ./build.sh
 ```
+
+## 常见问题
+
+### 后端在 Mac 上无法启动
+
+**问题**: 后端在 Windows 上可以正常启动，但在 Mac 上不行。
+
+**原因**: Air 配置文件使用了 Windows 特有的路径分隔符和文件扩展名。
+
+**解决方案**:
+1. 运行 `./setup-air.sh` 自动配置
+2. 或手动运行 `pnpm backend-dev:setup`
+3. 或确保使用正确的平台特定命令
+
+### 数据库连接失败
+
+确保 MySQL 服务正在运行，并且配置文件中的数据库连接信息正确：
+- 数据库地址: `127.0.0.1:3306`
+- 数据库名: `zxd`
+- 用户名: `root`
+- 密码: `zxd123`
 
 ## 作者
 

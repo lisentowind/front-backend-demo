@@ -8,7 +8,11 @@
     "scripts": {
         "dev": "concurrently \"pnpm run front-dev\" \"pnpm run backend-dev\"",
         "front-dev": "cd front && pnpm dev",
-        "backend-dev": "cd backend && air"
+        "backend-dev": "./run-backend.sh",
+        "backend-dev:setup": "./setup-air.sh && ./run-backend.sh",
+        "backend-dev:windows": "cd backend && air",
+        "backend-dev:mac": "./run-backend.sh",
+        "backend-dev:linux": "./run-backend.sh"
     },
     "devDependencies": {
         "concurrently": "^9.2.1"
