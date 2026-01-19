@@ -1,0 +1,22 @@
+{
+  "app.action.locale": "切换到中文",
+  "app.event.reload": "刷新事件",
+  "app.event.reload.front": "即将刷新",
+  "app.event.reload.back": "路由页面",
+  "app.btn.msg": "全局信息",
+  "app.btn.modal": "函数弹窗",
+  "app.event.fetch": "发送模拟请求",
+  "app.action.confirm": "确认",
+  "app.action.cancel": "取消",
+  "app.theme": "主题",
+  "app.tabs.icon": "图标",
+  "app.tabs.button": "按钮",
+  "app.tabs.locale": "国际化",
+  "app.tabs.api": "请求",
+  "app.tabs.echarts": "图表",
+  "app.tabs.upload": "上传",
+  "app.tabs.zod-form": "Zod 表单校验",
+  "app.tabs.zod-data": "Zod 数据校验",
+  "app.tabs.zod-api": "Zod API 校验",
+  "app.tabs.zod-hooks": "Zod Hooks"
+}

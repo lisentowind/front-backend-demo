@@ -1,0 +1,134 @@
+// 用在 Vue3 的 <TransitionGroup> 的动画
+/* 1. 声明过渡效果 */
+.fade-move,
+.fade-enter-active,
+.fade-leave-active {
+  transition: all 0.5s cubic-bezier(0.55, 0, 0.1, 1);
+}
+
+/* 2. 声明进入和离开的状态 */
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+  transform: scaleY(0.01) translate(30px, 0);
+}
+
+/* 3. 确保离开的项目被移除出了布局流
+      以便正确地计算移动时的动画效果。 */
+.fade-leave-active {
+  position: absolute;
+}
+
+.scale-list-move,
+.scale-list-enter-active,
+.scale-list-leave-active {
+  transition: all 0.4s ease;
+}
+
+.scale-list-enter-from,
+.scale-list-leave-to {
+  opacity: 0;
+  transform: scale(0.8);
+}
+
+.scale-list-leave-active {
+  position: absolute;
+}
+
+.list-move,
+.list-enter-active,
+.list-leave-active {
+  transition: all 0.4s ease;
+}
+
+.list-enter-from,
+.list-leave-to {
+  opacity: 0;
+  transform: translateX(30px);
+}
+
+.list-leave-active {
+  position: absolute;
+}
+.up-list-move,
+.up-list-enter-active,
+.up-list-leave-active {
+  transition: all 0.4s ease;
+}
+
+.up-list-enter-from,
+.up-list-leave-to {
+  opacity: 0;
+  transform: translateY(30px);
+}
+
+.up-list-leave-active {
+  position: absolute;
+}
+
+.flip-list-move,
+.flip-list-enter-active,
+.flip-list-leave-active {
+  transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.flip-list-enter-from,
+.flip-list-leave-to {
+  opacity: 0;
+  transform: rotateY(90deg);
+  transform-origin: left center;
+}
+
+.flip-list-leave-active {
+  position: absolute;
+}
+
+.bounce-list-move,
+.bounce-list-enter-active,
+.bounce-list-leave-active {
+  transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.bounce-list-enter-from,
+.bounce-list-leave-to {
+  opacity: 0;
+  transform: scale(0.6);
+}
+
+.bounce-list-leave-active {
+  position: absolute;
+}
+
+// 现代优雅的淡入动画 - 用于页面切换
+.smooth-fade-move,
+.smooth-fade-enter-active,
+.smooth-fade-leave-active {
+  transition: all 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.smooth-fade-enter-from {
+  opacity: 0;
+  transform: translateY(10px) scale(0.98);
+}
+
+.smooth-fade-leave-to {
+  opacity: 0;
+  transform: translateY(-10px) scale(0.98);
+}
+
+// 优雅的缩放淡入 - 更适合登录后的页面切换
+.zoom-fade-move,
+.zoom-fade-enter-active,
+.zoom-fade-leave-active {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.zoom-fade-enter-from {
+  opacity: 0;
+  transform: scale(0.95);
+}
+
+.zoom-fade-leave-to {
+  opacity: 0;
+  transform: scale(1.05);
+}

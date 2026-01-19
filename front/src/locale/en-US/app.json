@@ -1,0 +1,22 @@
+{
+  "app.action.locale": "Switch To English",
+  "app.event.reload": "Refresh event",
+  "app.event.reload.front": "Refreshing soon",
+  "app.event.reload.back": "Routing page",
+  "app.btn.msg": "Global information",
+  "app.btn.modal": "Function pop-up window",
+  "app.event.fetch": "Send a simulation request",
+  "app.action.confirm": "confirm",
+  "app.action.cancel": "Cancel",
+  "app.theme": "theme",
+  "app.tabs.icon": "icon",
+  "app.tabs.button": "Button",
+  "app.tabs.locale": "Internationalization",
+  "app.tabs.api": "ask",
+  "app.tabs.echarts": "chart",
+  "app.tabs.upload": "Upload",
+  "app.tabs.zod-form": "Zod Form Validation",
+  "app.tabs.zod-data": "Zod Data Validation",
+  "app.tabs.zod-api": "Zod API Validation",
+  "app.tabs.zod-hooks": "Zod Hooks"
+}
