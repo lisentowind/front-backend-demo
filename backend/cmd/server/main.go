@@ -1,11 +1,16 @@
 package main
 
 import (
+	"backend/config"
 	"backend/internal/router"
 	"fmt"
 )
 
 func main() {
+	// 连接数据库
+	config.InitMySQL()
+
+	// 初始化路由
 	r := router.InitRouter()
 
 	port := ":8080"
