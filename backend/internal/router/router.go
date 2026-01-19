@@ -1,7 +1,7 @@
 package router
 
 import (
-	"backend/internal/controller"
+	helloRouter "backend/internal/router/hello_router"
 
 	"github.com/gin-gonic/gin"
 )
@@ -9,12 +9,7 @@ import (
 func InitRouter() *gin.Engine {
 	r := gin.Default()
 
-	helloController := &controller.HelloController{}
-
-	v1 := r.Group("/api/v1")
-	{
-		v1.GET("/ping", helloController.Ping)
-	}
+	helloRouter.InitHelloRouter(r)
 
 	return r
 }
