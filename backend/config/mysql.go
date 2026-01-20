@@ -5,6 +5,8 @@ import (
 	"log"
 	"time"
 
+	"go-backend-demo/internal/model"
+
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
@@ -32,6 +34,11 @@ func InitMySQL() {
 	sqlDB.SetMaxIdleConns(10)
 	sqlDB.SetMaxOpenConns(100)
 	sqlDB.SetConnMaxLifetime(time.Hour)
+
+	// 自动迁移表结构
+	if err := DB.AutoMigrate(&model.User{}); err != nil {
+		log.Fatal("数据库迁移失败: ", err)
+	}
 
 	log.Println("MySQL 连接成功")
 }

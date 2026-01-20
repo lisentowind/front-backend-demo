@@ -1,9 +1,10 @@
 package main
 
 import (
-	"backend/config"
-	"backend/internal/router"
 	"fmt"
+
+	"go-backend-demo/config"
+	"go-backend-demo/internal/router"
 )
 
 func main() {

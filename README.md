@@ -17,6 +17,8 @@
 - Gin Web 框架
 - GORM ORM
 - MySQL 数据库
+- JWT 认证 (golang-jwt/jwt/v5)
+- Bcrypt 密码加密
 
 ## 项目结构
 
@@ -36,10 +38,13 @@ front-backend-demo/
 
 ## 功能特性
 
-- 用户列表展示
-- 用户分页查询
-- 用户删除操作
-- 前后端跨域支持
+- ✅ JWT 用户认证与授权
+- ✅ 用户注册/登录
+- ✅ 用户列表展示
+- ✅ 用户分页查询
+- ✅ 用户删除操作
+- ✅ 前后端跨域支持
+- ✅ 密码 bcrypt 加密存储
 
 ## 快速开始
 
@@ -149,6 +154,24 @@ pnpm backend-dev:unix-setup
 - 数据库名: `zxd`
 - 用户名: `root`
 - 密码: `zxd123`
+
+### JWT 认证相关
+
+**401 Unauthorized 错误**
+
+如果访问接口时返回 401 错误，说明需要登录认证：
+
+1. 先使用 `/api/v1/auth/login` 接口登录获取 Token
+2. 在请求头中添加：`Authorization: Bearer {token}`
+3. Token 有效期为 2 小时，过期后需要重新登录
+
+**测试账号**
+
+默认测试账号（密码：`123456`）：
+- 用户名：`admin`
+- 用户名：`test`
+
+详细 JWT 认证文档请查看 [JWT_AUTH.md](./JWT_AUTH.md)
 
 ## 作者
 

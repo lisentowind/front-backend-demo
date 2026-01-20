@@ -1,15 +1,22 @@
+/*
+ * @Date: 2026-01-20 10:07:39
+ * @LastEditors: zxd shisanlailin@outlook.com
+ * @LastEditTime: 2026-01-20 10:12:02
+ * @FilePath: \front-backend-demo\front\src\apis\index.ts
+ * @Author: tingfeng
+ */
 import type {
   AxiosError,
   AxiosResponse,
   InternalAxiosRequestConfig,
 } from 'axios'
 import axios from 'axios'
-import { ApiEventEmitter, getEnvData } from '@/utils'
+import { ApiEventEmitter, getEnvData, getToken } from '@/utils'
 
 const { VITE_API_BASE_URL, VITE_API_UPLOAD_URL } = getEnvData()
 
 const codeWhite = [20000, 200, 1001]
-const tokenWhite = ['/login']
+const tokenWhite = ['/login', '/register']
 
 const baseAxios = axios.create({
   timeout: 1000 * 60 * 0.5,
@@ -30,11 +37,12 @@ baseAxios.interceptors.request.use(
       config.baseURL = VITE_API_UPLOAD_URL
     }
 
-    // 其他地方处理token
-    const token = ''
+    // 从 localStorage 或 Cookie 获取 token
+    const token = getToken()
 
-    if (token && !tokenWhite.some(item => new RegExp(item).test(path))) {
-      config.headers.Authorization = token
+    if (token && !tokenWhite.some((item) => new RegExp(item).test(path))) {
+      // 添加 Bearer 前缀
+      config.headers.Authorization = `Bearer ${token}`
       config.headers.cancelToken = path
     }
     return config

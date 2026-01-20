@@ -1,5 +1,8 @@
 import type { LoginParams, UserInfo } from '@/types/user'
+import { message } from 'ant-design-vue'
 import { defineStore } from 'pinia'
+import { getUserInfo, login, register } from '@/apis/modules/user'
+import { clearToken, getToken, setToken as setTokenUtil } from '@/utils'
 
 interface UserState {
   token: string
@@ -9,7 +12,7 @@ interface UserState {
 
 export const useUserStore = defineStore('user', {
   state: (): UserState => ({
-    token: '',
+    token: getToken() || '',
     userInfo: null,
     roles: [],
   }),
@@ -23,6 +26,7 @@ export const useUserStore = defineStore('user', {
   actions: {
     setToken(token: string) {
       this.token = token
+      setTokenUtil(token)
     },
 
     setUserInfo(userInfo: UserInfo) {
@@ -32,19 +36,88 @@ export const useUserStore = defineStore('user', {
 
     async login(params: LoginParams) {
       try {
-        // 这里调用实际的登录 API
-        // const response = await loginApi(params)
+        // 调用实际的登录 API
+        const response = await login({
+          username: params.username,
+          password: params.password,
+        })
 
-        // Mock 登录逻辑
-        const mockResponse = this.getMockLoginResponse(params.username)
+        if (response.data.code === 200) {
+          const token = response.data.data.token
+          this.setToken(token)
 
-        this.setToken(mockResponse.token)
-        this.setUserInfo(mockResponse.userInfo)
+          // 获取用户信息
+          const userInfoResponse = await getUserInfo()
+          if (userInfoResponse.data.code === 200) {
+            const userInfoData = userInfoResponse.data.data
+            const userInfo: UserInfo = {
+              id: String(userInfoData.id),
+              username: userInfoData.username,
+              nickname: userInfoData.username,
+              avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${userInfoData.username}`,
+              email: `${userInfoData.username}@example.com`,
+              roles: [userInfoData.role],
+              homePath: '/dashboard',
+            }
+            this.setUserInfo(userInfo)
+          }
 
-        return mockResponse
+          message.success('登录成功')
+          return response.data
+        }
+        else {
+          message.error(response.data.msg || '登录失败')
+          throw new Error(response.data.msg)
+        }
+      }
+      catch (error: any) {
+        message.error(error.response?.data?.msg || '登录失败')
+        throw error
+      }
+    },
+
+    async register(params: LoginParams) {
+      try {
+        const response = await register({
+          username: params.username,
+          password: params.password,
+        })
+
+        if (response.data.code === 200) {
+          message.success('注册成功')
+          return response.data
+        }
+        else {
+          message.error(response.data.msg || '注册失败')
+          throw new Error(response.data.msg)
+        }
+      }
+      catch (error: any) {
+        message.error(error.response?.data?.msg || '注册失败')
+        throw error
+      }
+    },
+
+    async getUserInfo() {
+      try {
+        const response = await getUserInfo()
+        if (response.data.code === 200) {
+          const userInfoData = response.data.data
+          const userInfo: UserInfo = {
+            id: String(userInfoData.id),
+            username: userInfoData.username,
+            nickname: userInfoData.username,
+            avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${userInfoData.username}`,
+            email: `${userInfoData.username}@example.com`,
+            roles: [userInfoData.role],
+            homePath: '/dashboard',
+          }
+          this.setUserInfo(userInfo)
+          return userInfo
+        }
       }
       catch (error) {
-        console.error('Login failed:', error)
+        console.error('获取用户信息失败:', error)
         throw error
       }
     },
@@ -53,50 +126,8 @@ export const useUserStore = defineStore('user', {
       this.token = ''
       this.userInfo = null
       this.roles = []
-    },
-
-    // Mock 登录响应
-    getMockLoginResponse(username: string) {
-      const mockUsers = {
-        admin: {
-          token: 'mock-token-admin-12345',
-          userInfo: {
-            id: '1',
-            username: 'admin',
-            nickname: '超级管理员',
-            avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=admin',
-            email: 'admin@example.com',
-            roles: ['admin'],
-            homePath: '/dashboard',
-          },
-        },
-        editor: {
-          token: 'mock-token-editor-67890',
-          userInfo: {
-            id: '2',
-            username: 'editor',
-            nickname: '编辑人员',
-            avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=editor',
-            email: 'editor@example.com',
-            roles: ['editor'],
-            homePath: '/content/list',
-          },
-        },
-        guest: {
-          token: 'mock-token-guest-11111',
-          userInfo: {
-            id: '3',
-            username: 'guest',
-            nickname: '访客',
-            avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=guest',
-            email: 'guest@example.com',
-            roles: ['guest'],
-            homePath: '/readonly/home',
-          },
-        },
-      }
-
-      return mockUsers[username as keyof typeof mockUsers] || mockUsers.guest
+      clearToken()
+      message.success('已退出登录')
     },
   },
 

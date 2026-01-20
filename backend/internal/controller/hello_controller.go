@@ -1,12 +1,12 @@
 package controller
 
 import (
-	"backend/config"
-	"backend/internal/model"
-	"backend/utils"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"go-backend-demo/config"
+	"go-backend-demo/internal/model"
+	"go-backend-demo/utils"
 )
 
 type HelloController struct {

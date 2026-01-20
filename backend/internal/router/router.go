@@ -1,11 +1,12 @@
 package router
 
 import (
-	helloRouter "backend/internal/router/hello_router"
 	"time"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"go-backend-demo/internal/router/auth_router"
+	helloRouter "go-backend-demo/internal/router/hello_router"
 )
 
 func InitRouter() *gin.Engine {
@@ -21,6 +22,10 @@ func InitRouter() *gin.Engine {
 		MaxAge:           12 * time.Hour,
 	}))
 
+	// 初始化认证路由
+	auth_router.InitAuthRouter(r)
+
+	// 初始化 Hello 路由
 	helloRouter.InitHelloRouter(r)
 
 	return r

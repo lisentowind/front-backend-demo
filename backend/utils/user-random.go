@@ -1,9 +1,10 @@
 package utils
 
 import (
-	"backend/internal/model"
 	"math/rand"
 	"strconv"
+
+	"go-backend-demo/internal/model"
 )
 
 func RandomUser(id int) model.User {
