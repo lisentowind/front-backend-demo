@@ -9,6 +9,10 @@ export function register(data: { username: string; password: string }) {
   return baseAxios.post<DataResponse<{ id: number; username: string }>>('/api/v1/auth/register', data)
 }
 
+export function checkUser(data: { username: string }) {
+  return baseAxios.post<DataResponse<{ exists: boolean }>>('/api/v1/auth/check-user', data)
+}
+
 export function getUserInfo() {
   return baseAxios.get<DataResponse<{ id: number; username: string; role: string }>>('/api/v1/auth/info')
 }

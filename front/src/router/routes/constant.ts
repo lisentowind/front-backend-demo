@@ -22,15 +22,6 @@ export const constantRoutes: AppRouteRecordRaw[] = [
       hidden: true,
     },
   },
-  {
-    path: '/404',
-    name: '404',
-    component: () => import('@/views/error/404.vue'),
-    meta: {
-      title: '404',
-      hidden: true,
-    },
-  },
 ]
 
 /**
@@ -39,7 +30,8 @@ export const constantRoutes: AppRouteRecordRaw[] = [
  */
 export const notFoundRoute: AppRouteRecordRaw = {
   path: '/:pathMatch(.*)*',
-  redirect: '/404',
+  name: '/404',
+  component: () => import('@/views/error/404.vue'),
   meta: {
     hidden: true,
   },

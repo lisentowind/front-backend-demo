@@ -11,6 +11,8 @@ import { transformItemTyped } from '@/utils/modules/table-data-trans-line'
 // Zod 表单验证Schema
 const userFormSchema = z.object({
   name: z.string().min(1, '用户名不能为空').max(100, '用户名最多100个字符'),
+  role: z.string().min(1, '角色不能为空'),
+  project: z.string().min(1, '项目不能为空').max(100, '项目名称最多100个字符'),
   age: z
     .number()
     .int('年龄必须是整数')
@@ -24,6 +26,8 @@ const userFormSchema = z.object({
 const columns: ColumnsType = [
   { title: 'ID', dataIndex: 'id', key: 'id' },
   { title: '用户名', dataIndex: 'name', key: 'name' },
+  { title: '角色', dataIndex: 'role', key: 'role' },
+  { title: '项目', dataIndex: 'project', key: 'project' },
   { title: '年龄', dataIndex: 'age', key: 'age' },
   { title: '邮箱', dataIndex: 'email', key: 'email' },
   { title: '创建时间', dataIndex: 'createTime', key: 'createTime' },
@@ -57,6 +61,8 @@ const {
   allRules,
 } = useZodForm(userFormSchema, {
   name: '',
+  role: '',
+  project: '',
   age: undefined,
   email: '',
 })
@@ -150,8 +156,10 @@ function handleSubmit() {
   }
 
   // 准备提交数据，过滤掉空值
-  const submitData: { name: string, age?: number, email?: string } = {
+  const submitData: AddUserParams = {
     name: result.data.name,
+    role: result.data.role,
+    project: result.data.project,
   }
 
   if (result.data.age !== undefined && result.data.age !== null) {
@@ -315,6 +323,42 @@ onMounted(() => {
             v-model:value="formData.name"
             placeholder="请输入用户名 (必填)"
             @blur="() => validateField('name')"
+          />
+        </AFormItem>
+
+        <AFormItem
+          label="角色"
+          name="role"
+          :validate-status="hasFieldError('role') ? 'error' : ''"
+          :help="getFieldError('role')"
+        >
+          <ASelect
+            v-model:value="formData.role"
+            placeholder="请选择角色 (必填)"
+            @blur="() => validateField('role')"
+          >
+            <ASelectOption value="admin">
+              管理员 (admin)
+            </ASelectOption>
+            <ASelectOption value="editor">
+              编辑者 (editor)
+            </ASelectOption>
+            <ASelectOption value="guest">
+              访客 (guest)
+            </ASelectOption>
+          </ASelect>
+        </AFormItem>
+
+        <AFormItem
+          label="项目"
+          name="project"
+          :validate-status="hasFieldError('project') ? 'error' : ''"
+          :help="getFieldError('project')"
+        >
+          <AInput
+            v-model:value="formData.project"
+            placeholder="请输入项目名称 (必填)"
+            @blur="() => validateField('project')"
           />
         </AFormItem>
 

@@ -4,8 +4,11 @@ interface User {
   age: number
   email: string
   createTime: string
+  role: string
+  project: string
 }
 
 type UserResponse = TableResponse<User>
 
-type AddUserParams = Pick<User, 'name'> & Partial<Pick<User, 'age', 'email'>>
+type AddUserParams = Pick<User, 'name' | 'role' | 'project'> &
+  Partial<Pick<User, 'age' | 'email'>>

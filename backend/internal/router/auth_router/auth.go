@@ -15,6 +15,7 @@ func InitAuthRouter(r *gin.Engine) {
 		// 公开路由 - 不需要认证
 		authGroup.POST("/login", authController.Login)
 		authGroup.POST("/register", authController.Register)
+		authGroup.POST("/check-user", authController.CheckUser)
 
 		// 需要认证的路由
 		authGroup.Use(middleware.AuthMiddleware())

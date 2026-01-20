@@ -18,9 +18,9 @@ export const useUserStore = defineStore('user', {
   }),
 
   getters: {
-    isLoggedIn: state => !!state.token,
-    getUserRoles: state => state.roles,
-    getHomePath: state => state.userInfo?.homePath || '/dashboard',
+    isLoggedIn: (state) => !!state.token && state.token,
+    getUserRoles: (state) => state.roles,
+    getHomePath: (state) => state.userInfo?.homePath || '/dashboard',
   },
 
   actions: {
@@ -64,14 +64,11 @@ export const useUserStore = defineStore('user', {
 
           message.success('登录成功')
           return response.data
-        }
-        else {
-          message.error(response.data.msg || '登录失败')
+        } else {
           throw new Error(response.data.msg)
         }
-      }
-      catch (error: any) {
-        message.error(error.response?.data?.msg || '登录失败')
+      } catch (error: any) {
+        console.log('🚀 ~ error:', error)
         throw error
       }
     },
@@ -84,16 +81,14 @@ export const useUserStore = defineStore('user', {
         })
 
         if (response.data.code === 200) {
-          message.success('注册成功')
+          message.success('初始化成功')
           return response.data
-        }
-        else {
-          message.error(response.data.msg || '注册失败')
+        } else {
           throw new Error(response.data.msg)
         }
-      }
-      catch (error: any) {
-        message.error(error.response?.data?.msg || '注册失败')
+      } catch (error: any) {
+        console.log('🚀 ~ error:', error)
+
         throw error
       }
     },
@@ -103,20 +98,10 @@ export const useUserStore = defineStore('user', {
         const response = await getUserInfo()
         if (response.data.code === 200) {
           const userInfoData = response.data.data
-          const userInfo: UserInfo = {
-            id: String(userInfoData.id),
-            username: userInfoData.username,
-            nickname: userInfoData.username,
-            avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${userInfoData.username}`,
-            email: `${userInfoData.username}@example.com`,
-            roles: [userInfoData.role],
-            homePath: '/dashboard',
-          }
-          this.setUserInfo(userInfo)
-          return userInfo
+
+          return userInfoData
         }
-      }
-      catch (error) {
+      } catch (error) {
         console.error('获取用户信息失败:', error)
         throw error
       }

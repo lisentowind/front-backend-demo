@@ -68,7 +68,9 @@ export function ApiEventHandle() {
 
       if (data.res.status) {
         msgError({
-          content: resErrMap.value[data.res.status],
+          content:
+            (data.res.response?.data as any)?.msg
+            || resErrMap.value[data.res.status],
         })
       }
     })

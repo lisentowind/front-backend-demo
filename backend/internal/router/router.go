@@ -3,10 +3,11 @@ package router
 import (
 	"time"
 
-	"github.com/gin-contrib/cors"
-	"github.com/gin-gonic/gin"
 	"go-backend-demo/internal/router/auth_router"
 	helloRouter "go-backend-demo/internal/router/hello_router"
+
+	"github.com/gin-contrib/cors"
+	"github.com/gin-gonic/gin"
 )
 
 func InitRouter() *gin.Engine {
@@ -16,7 +17,7 @@ func InitRouter() *gin.Engine {
 	r.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"*"}, // 允许所有源，生产环境建议指定具体域名
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"},
-		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization", "Accept"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization", "Accept", "CancelToken"},
 		ExposeHeaders:    []string{"Content-Length"},
 		AllowCredentials: true,
 		MaxAge:           12 * time.Hour,

@@ -37,6 +37,9 @@ func (h *HelloController) AddUser(c *gin.Context) {
 	// 设置创建时间
 	user.CreateTime = utils.GetChinaTime()
 
+	// 管理员添加用户时，密码默认为空，等待用户初始化
+	user.Password = ""
+
 	// 保存到数据库
 	if err := config.DB.Create(&user).Error; err != nil {
 		resp := model.Response{

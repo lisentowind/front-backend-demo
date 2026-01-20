@@ -48,7 +48,7 @@ func (a *AuthController) Login(c *gin.Context) {
 	}
 
 	// 生成 Token
-	token, err := utils.GenerateToken(user.Id, user.Name, "user")
+	token, err := utils.GenerateToken(user.Id, user.Name, user.Role)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, model.Response{
 			Code: http.StatusInternalServerError,
@@ -67,7 +67,7 @@ func (a *AuthController) Login(c *gin.Context) {
 	})
 }
 
-// Register 用户注册
+// Register 用户初始化密码
 func (a *AuthController) Register(c *gin.Context) {
 	var req model.LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -79,12 +79,22 @@ func (a *AuthController) Register(c *gin.Context) {
 		return
 	}
 
-	// 检查用户名是否已存在
+	// 检查用户是否存在
 	var existingUser model.User
-	if err := config.DB.Where("name = ?", req.Username).First(&existingUser).Error; err == nil {
+	if err := config.DB.Where("name = ?", req.Username).First(&existingUser).Error; err != nil {
 		c.JSON(http.StatusBadRequest, model.Response{
 			Code: http.StatusBadRequest,
-			Msg:  "用户名已存在",
+			Msg:  "账户不存在，无法初始化",
+			Data: nil,
+		})
+		return
+	}
+
+	// 检查是否已经设置过密码（密码不为空）
+	if existingUser.Password != "" {
+		c.JSON(http.StatusBadRequest, model.Response{
+			Code: http.StatusBadRequest,
+			Msg:  "账户已初始化，无法重复设置密码",
 			Data: nil,
 		})
 		return
@@ -101,17 +111,11 @@ func (a *AuthController) Register(c *gin.Context) {
 		return
 	}
 
-	// 创建用户
-	user := model.User{
-		Name:       req.Username,
-		Password:   string(hashedPassword),
-		CreateTime: utils.GetChinaTime(),
-	}
-
-	if err := config.DB.Create(&user).Error; err != nil {
+	// 更新用户密码
+	if err := config.DB.Model(&existingUser).Update("password", string(hashedPassword)).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, model.Response{
 			Code: http.StatusInternalServerError,
-			Msg:  "注册失败",
+			Msg:  "初始化失败",
 			Data: nil,
 		})
 		return
@@ -119,10 +123,46 @@ func (a *AuthController) Register(c *gin.Context) {
 
 	c.JSON(http.StatusOK, model.Response{
 		Code: http.StatusOK,
-		Msg:  "注册成功",
+		Msg:  "初始化成功",
 		Data: gin.H{
-			"id":       user.Id,
-			"username": user.Name,
+			"id":       existingUser.Id,
+			"username": existingUser.Name,
+		},
+	})
+}
+
+// CheckUser 检查用户是否存在
+func (a *AuthController) CheckUser(c *gin.Context) {
+	var req struct {
+		Username string `json:"username" binding:"required"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, model.Response{
+			Code: http.StatusBadRequest,
+			Msg:  "参数错误",
+			Data: nil,
+		})
+		return
+	}
+
+	// 查询用户是否存在
+	var user model.User
+	if err := config.DB.Where("name = ?", req.Username).First(&user).Error; err != nil {
+		c.JSON(http.StatusOK, model.Response{
+			Code: http.StatusOK,
+			Msg:  "用户不存在",
+			Data: gin.H{
+				"exists": false,
+			},
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, model.Response{
+		Code: http.StatusOK,
+		Msg:  "用户已存在",
+		Data: gin.H{
+			"exists": true,
 		},
 	})
 }
