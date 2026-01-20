@@ -6,14 +6,12 @@
     "name": "tingfeng"
   },
   "scripts": {
-    "dev:mac": "concurrently \"pnpm run front-dev\" \"pnpm run backend-dev\"",
+    "dev:mac": "concurrently \"pnpm run front-dev\" \"pnpm run backend-dev:unix\"",
     "dev:windows": "concurrently \"pnpm run front-dev\" \"pnpm run backend-dev:windows\"",
     "front-dev": "cd front && pnpm dev",
-    "backend-dev": "./run-backend.sh",
-    "backend-dev:setup": "./setup-air.sh && ./run-backend.sh",
-    "backend-dev:windows": "cd backend && air -c .air.windows.toml",
-    "backend-dev:mac": "./run-backend.sh",
-    "backend-dev:linux": "./run-backend.sh"
+    "backend-dev:unix": "./run-backend.sh",
+    "backend-dev:unix-setup": "./setup-air.sh && ./run-backend.sh",
+    "backend-dev:windows": "cd backend && air -c .air.windows.toml"
   },
   "devDependencies": {
     "concurrently": "^9.2.1"

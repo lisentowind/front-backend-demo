@@ -65,21 +65,29 @@ cd backend && go mod download
 
 ### 开发模式
 
-#### 方式一：自动平台检测（推荐）
-
-```bash
-# 自动检测平台并启动后端
-pnpm backend-dev:setup
-
-# 或同时启动前端和后端
-pnpm dev
-```
-
-#### 方式二：手动指定平台
+#### 方式一：全栈启动（推荐）
 
 **macOS / Linux:**
 ```bash
-pnpm backend-dev:mac    # 或 pnpm backend-dev:linux
+pnpm dev:mac
+```
+
+**Windows:**
+```bash
+pnpm dev:windows
+```
+
+这会同时启动前端和后端服务。
+
+#### 方式二：仅启动后端
+
+**macOS / Linux:**
+```bash
+# 直接启动后端
+pnpm backend-dev:unix
+
+# 或先进行环境检测和配置
+pnpm backend-dev:unix-setup
 ```
 
 **Windows:**
@@ -90,27 +98,30 @@ pnpm backend-dev:windows
 #### 方式三：分别启动
 
 ```bash
-# 启动前端
+# 启动前端（所有平台）
 pnpm front-dev
 
 # 启动后端（根据你的平台选择）
-pnpm backend-dev:mac    # macOS
+pnpm backend-dev:unix    # macOS / Linux
 # 或
 pnpm backend-dev:windows # Windows
 ```
 
 ### 平台特定配置
 
-如果你的后端在 Mac 上无法启动，请运行以下命令进行平台检测和配置：
+如果你的后端在 macOS/Linux 上无法启动，请运行以下命令进行平台检测和配置：
 
 ```bash
-./setup-air.sh
+pnpm backend-dev:unix-setup
 ```
 
 这个脚本会：
 1. 检测你的操作系统平台
 2. 自动选择合适的 Air 配置文件
-3. 设置正确的二进制文件路径
+3. 验证 Air 二进制文件是否存在
+4. 设置正确的二进制文件路径
+
+> 注意：Windows 用户直接使用 `pnpm backend-dev:windows` 即可，无需额外配置。
 
 ### 构建
 
@@ -121,16 +132,15 @@ pnpm backend-dev:windows # Windows
 
 ## 常见问题
 
-### 后端在 Mac 上无法启动
+### 后端在 macOS/Linux 上无法启动
 
-**问题**: 后端在 Windows 上可以正常启动，但在 Mac 上不行。
+**问题**: 后端在 Windows 上可以正常启动，但在 macOS/Linux 上不行。
 
 **原因**: Air 配置文件使用了 Windows 特有的路径分隔符和文件扩展名。
 
 **解决方案**:
-1. 运行 `./setup-air.sh` 自动配置
-2. 或手动运行 `pnpm backend-dev:setup`
-3. 或确保使用正确的平台特定命令
+1. 运行 `pnpm backend-dev:unix-setup` 自动配置
+2. 或确保使用正确的平台特定命令（`pnpm backend-dev:unix`）
 
 ### 数据库连接失败
 
